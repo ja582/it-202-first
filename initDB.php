@@ -19,6 +19,9 @@ try{
     $stmt = $db->prepare($query);
     $r = $stmt->execute();
     echo "<br>" . $r . "<br>";
+    $insertTest = "INSERT INTO `ja582`.`TestUsers` (`id`, `username`, `pin`) VALUES ('1', 'username', '0');";
+    $stmt = $db->prepare($insertTest);
+    $r = $stmt->execute();
 }
 catch(Exception $e){
     echo $e->getMessage();

@@ -5,25 +5,32 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 //pull in config.php so we can access the variables from it
 require('config.php');
-echo "Loaded Host: " . $host;
+//echo "Loaded Host: " . $host;
 $conn_string = "mysql:host=$host;dbname=$database;charset=utf8mb4";
 try{
+    foreach(glob("sql/*.sql") as $filename){
+        //echo $filename;
+        $sql[$filename] = file_get_contents($filename);
+        //echo $sql[$filename];
+    }
+    ksort($sql);
+    //connect to DB
     $db = new PDO($conn_string, $username, $password);
-    echo "Connected";
-    $query = "create table if not exists `TestUsers`(
-		`id` int auto_increment not null,
-		`username` varchar(30) not null unique,
-		`pin` int default 0,
-		PRIMARY KEY (`id`)
-		) CHARACTER SET utf8 COLLATE utf8_general_ci";
-    $stmt = $db->prepare($query);
-    $r = $stmt->execute();
-    echo "<br>" . $r . "<br>";
-    $insertTest = "INSERT INTO `ja582`.`TestUsers` (`id`, `username`, `pin`) VALUES ('1', 'username', '0');";
-    $stmt = $db->prepare($insertTest);
-    $r = $stmt->execute();
+    //$db->setAttribute(PDO::ATTR_ERRMODE);
+    foreach($sql as $key => $value){
+        echo "<br>Running: " . $key;
+        $stmt = $db->prepare($value);
+        $result = $stmt->execute();
+        $error = $stmt->errorInfo();
+        if($error && $error[0] !== '00000'){
+            echo "<br>Error:<pre>" . var_export($error,true) . "</pre><br>";
+        }
+        echo "<br>$key result: " . ($result>0?"Success":"Fail") . "<br>";
+    }
+
 }
 catch(Exception $e){
     echo $e->getMessage();
     exit("Something went wrong");
 }
+?>
